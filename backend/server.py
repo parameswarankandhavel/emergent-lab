@@ -133,6 +133,20 @@ async def register_user(registration: UserRegistration):
         
         logger.info(f"User registered: {registration.email}, session: {session_id}")
         
+        # Try to automatically send email OTP (don't fail registration if this fails)
+        try:
+            otp_code, otp_success, otp_message = create_otp(session_id, "email", registration.email)
+            if otp_success:
+                send_success, send_message = send_otp_email(registration.email, otp_code, registration.full_name)
+                if send_success:
+                    logger.info(f"Email OTP sent automatically to {registration.email}")
+                else:
+                    logger.warning(f"Failed to send email OTP: {send_message}")
+            else:
+                logger.warning(f"Failed to create email OTP: {otp_message}")
+        except Exception as email_error:
+            logger.warning(f"Email OTP auto-send failed (non-critical): {email_error}")
+        
         return {
             "success": True,
             "session_id": session_id,
@@ -142,7 +156,7 @@ async def register_user(registration: UserRegistration):
         
     except Exception as e:
         logger.error(f"Registration error: {e}")
-        raise HTTPException(status_code=500, detail="Registration failed")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/api/otp/send")
 async def send_otp(request: OTPRequest):
