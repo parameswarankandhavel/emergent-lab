@@ -95,9 +95,11 @@ function App() {
       
       if (response.data.success) {
         setSessionId(response.data.session_id);
-        // Automatically send email OTP
-        await sendOTP(response.data.session_id, 'email');
         setStep('email_otp');
+        // Automatically try to send email OTP
+        sendOTP(response.data.session_id, 'email').catch(err => {
+          console.log('Auto-send OTP failed, user can manually request it');
+        });
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed');
