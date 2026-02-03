@@ -31,7 +31,9 @@ def create_otp(session_id: str, otp_type: str, target: str) -> tuple[str, bool, 
         if existing_otp:
             increment_resend_count(session_id, otp_type)
         
-        logger.info(f"OTP created for session {session_id}, type {otp_type}")
+        # TESTING: Log OTP code for development/testing (REMOVE IN PRODUCTION)
+        logger.info(f"🔑 OTP GENERATED [{otp_type.upper()}]: {otp_code} for {target} (session: {session_id})")
+        
         return otp_code, True, "OTP created successfully"
     except Exception as e:
         logger.error(f"Error creating OTP: {e}")
